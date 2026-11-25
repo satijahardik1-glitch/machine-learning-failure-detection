@@ -1,0 +1,198 @@
+{
+  "evaluation_source": "Saved Phase 1-3 notebook holdout results; no metrics are recomputed in the dashboard.",
+  "evaluation_split": {
+    "method": "Stratified 75/25 split",
+    "random_state": 42,
+    "holdout_rows": 2500,
+    "holdout_failures": 85
+  },
+  "dataset_summary": {
+    "observations": 10000,
+    "failures": 339,
+    "non_failures": 9661
+  },
+  "condition_distribution": {
+    "FAILURE RISK": 124,
+    "ANOMALOUS CONDITION": 109,
+    "NORMAL CONDITION": 2267
+  },
+  "models": {
+    "HistGradientBoosting (primary)": {
+      "phase": "Phase 2 final model / Phase 3 holdout",
+      "accuracy": 0.9732,
+      "precision": 0.5726,
+      "recall": 0.8353,
+      "f1": 0.6794,
+      "roc_auc": 0.9763,
+      "pr_auc": 0.8039,
+      "fpr": 0.0219,
+      "fnr": 0.1647,
+      "confusion_matrix": {
+        "tn": 2362,
+        "fp": 53,
+        "fn": 14,
+        "tp": 71
+      }
+    },
+    "Random Forest (Phase 1 baseline)": {
+      "phase": "Phase 1 original-feature baseline",
+      "accuracy": 0.9684,
+      "precision": 0.5231,
+      "recall": 0.8,
+      "f1": 0.6326,
+      "roc_auc": 0.9795,
+      "pr_auc": 0.7103,
+      "fpr": 0.0257,
+      "fnr": 0.2,
+      "confusion_matrix": {
+        "tn": 2353,
+        "fp": 62,
+        "fn": 17,
+        "tp": 68
+      }
+    },
+    "Isolation Forest (Phase 3 calibrated)": {
+      "phase": "Phase 3 selected contamination=0.05; score cutoff=0.571183",
+      "accuracy": 0.9268,
+      "precision": 0.1288,
+      "recall": 0.2,
+      "f1": 0.1567,
+      "roc_auc": null,
+      "pr_auc": 0.1385,
+      "fpr": 0.0476,
+      "fnr": 0.8,
+      "confusion_matrix": {
+        "tn": 2300,
+        "fp": 115,
+        "fn": 68,
+        "tp": 17
+      }
+    },
+    "Random Forest OR Isolation Forest": {
+      "phase": "Phase 3 calibrated anomaly alert OR Phase 3 RF probability threshold 0.5",
+      "accuracy": 0.928,
+      "precision": 0.2979,
+      "recall": 0.8235,
+      "f1": 0.4375,
+      "roc_auc": null,
+      "pr_auc": null,
+      "fpr": 0.0683,
+      "fnr": 0.1765,
+      "confusion_matrix": {
+        "tn": 2250,
+        "fp": 165,
+        "fn": 15,
+        "tp": 70
+      }
+    },
+    "HistGradientBoosting OR Isolation Forest": {
+      "phase": "Phase 3 calibrated anomaly alert OR Phase 2 HGB prediction",
+      "accuracy": 0.9312,
+      "precision": 0.3133,
+      "recall": 0.8588,
+      "f1": 0.4591,
+      "roc_auc": null,
+      "pr_auc": null,
+      "fpr": 0.0663,
+      "fnr": 0.1412,
+      "confusion_matrix": {
+        "tn": 2255,
+        "fp": 160,
+        "fn": 12,
+        "tp": 73
+      }
+    }
+  },
+  "feature_importance": {
+    "Random Forest impurity": {
+      "Torque [Nm]": 0.343,
+      "Rotational speed [rpm]": 0.2912,
+      "Tool wear [min]": 0.2126,
+      "Air temperature [K]": 0.0918,
+      "Process temperature [K]": 0.0614
+    },
+    "HistGradientBoosting permutation AP decrease": {
+      "Torque [Nm]": 0.6499,
+      "Air temperature [K]": 0.4447,
+      "Rotational speed [rpm]": 0.3667,
+      "Tool wear [min]": 0.33,
+      "Process temperature [K]": 0.2095
+    }
+  },
+  "isolation_contamination_calibration": [
+    {
+      "contamination": 0.005,
+      "precision": 0.3571,
+      "recall": 0.0794,
+      "f1": 0.1299,
+      "fpr": 0.005,
+      "fnr": 0.9206,
+      "pr_auc": 0.1748
+    },
+    {
+      "contamination": 0.01,
+      "precision": 0.2083,
+      "recall": 0.0794,
+      "f1": 0.1149,
+      "fpr": 0.0105,
+      "fnr": 0.9206,
+      "pr_auc": 0.1748
+    },
+    {
+      "contamination": 0.02,
+      "precision": 0.1538,
+      "recall": 0.0952,
+      "f1": 0.1176,
+      "fpr": 0.0182,
+      "fnr": 0.9048,
+      "pr_auc": 0.1748
+    },
+    {
+      "contamination": 0.03,
+      "precision": 0.1579,
+      "recall": 0.1429,
+      "f1": 0.15,
+      "fpr": 0.0265,
+      "fnr": 0.8571,
+      "pr_auc": 0.1748
+    },
+    {
+      "contamination": 0.05,
+      "precision": 0.1368,
+      "recall": 0.2063,
+      "f1": 0.1646,
+      "fpr": 0.0453,
+      "fnr": 0.7937,
+      "pr_auc": 0.1748
+    },
+    {
+      "contamination": 0.075,
+      "precision": 0.129,
+      "recall": 0.3175,
+      "f1": 0.1835,
+      "fpr": 0.0745,
+      "fnr": 0.6825,
+      "pr_auc": 0.1748
+    },
+    {
+      "contamination": 0.1,
+      "precision": 0.1343,
+      "recall": 0.4286,
+      "f1": 0.2045,
+      "fpr": 0.096,
+      "fnr": 0.5714,
+      "pr_auc": 0.1748
+    }
+  ],
+  "thresholds": {
+    "hgb_prediction": 0.5,
+    "isolation_forest_contamination": 0.05,
+    "isolation_forest_anomaly_score": 0.571183
+  },
+  "notes": [
+    "Anomaly metrics use recorded failure as a proxy, not ground-truth anomaly labels.",
+    "OR alert rows have no ranking score; ROC-AUC and PR-AUC are not defined.",
+    "The HGB permutation importance was computed post hoc on the saved holdout results and is descriptive only; it is not causal.",
+    "Metric values are from the existing notebook results and fixed split; they do not represent live monitoring."
+  ]
+}

@@ -1,0 +1,17 @@
+.venv*/
+venv/
+env/
+ENV/
+.build_tmp/
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage*
+htmlcov/
+.streamlit/secrets.toml

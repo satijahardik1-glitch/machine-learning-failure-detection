@@ -1,0 +1,4 @@
+Asset tag,Air temperature [K],Process temperature [K],Rotational speed [rpm],Torque [Nm],Tool wear [min]
+sample-A,298.1,308.6,1551,42.8,0
+sample-B,298.8,308.9,1852,25.0,57
+sample-C,298.7,310.1,1402,69.7,64

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Machine fault intelligence: live predictor</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#E8ECEE;--panel:#F6F8F8;--ink:#16222B;--mute:#566570;--line:#C5CED3;--risk:#B8362A;--anom:#A8660F;--ok:#24705F;--acc:#1F4E6B;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10181E;--panel:#172229;--ink:#E4ECF0;--mute:#93A5B0;--line:#2B3B45;--risk:#EE8672;--anom:#E7AE59;--ok:#52C2AF;--acc:#7DB0EA;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10181E;--panel:#172229;--ink:#E4ECF0;--mute:#93A5B0;--line:#2B3B45;--risk:#EE8672;--anom:#E7AE59;--ok:#52C2AF;--acc:#7DB0EA;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Barlow,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 48px}
+h1{font:700 clamp(2rem,5vw,3.1rem)/1 "Barlow Condensed","Arial Narrow",sans-serif;margin:0 0 8px;letter-spacing:.01em}
+.lede{max-width:56ch;color:var(--mute);margin:0 0 22px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.presets button{font:500 .9rem Barlow,sans-serif;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer;text-align:left}
+.presets button small{display:block;color:var(--mute);font-weight:400}
+.presets button:hover{border-color:var(--acc)}
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.sensors{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.row{padding:16px 18px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.top label{font-weight:600}
+.num{display:flex;align-items:baseline;gap:6px}
+.num input{width:6.2em;font:600 1.15rem "Barlow Condensed",sans-serif;text-align:right;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);padding:2px 0}
+.num span{color:var(--mute);font-size:.85rem;min-width:2.6em}
+input[type=range]{width:100%;margin:10px 0 4px;accent-color:var(--acc)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.curve{display:block;width:100%;height:38px}
+.hint{display:flex;justify-content:space-between;color:var(--mute);font-size:.8rem}
+.warn{color:var(--anom);font-size:.82rem;min-height:1.2em}
+.readout{position:sticky;top:calc(12px + env(safe-area-inset-top,0px));background:var(--panel);border:1px solid var(--line);border-left:8px solid var(--ok);border-radius:8px;padding:20px}
+.readout.risk{border-left-color:var(--risk)}.readout.anom{border-left-color:var(--anom)}
+@media (max-width:820px){.readout{position:static}}
+.state{font:700 clamp(2.2rem,6vw,3.2rem)/1 "Barlow Condensed","Arial Narrow",sans-serif;margin:0 0 6px;color:var(--ok)}
+.risk .state{color:var(--risk)}.anom .state{color:var(--anom)}
+.why{margin:0 0 18px;color:var(--mute);min-height:3em}
+.meter{margin:14px 0}
+.meter .l{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:5px}
+.meter b{font:600 1.1rem "Barlow Condensed",sans-serif}
+.bar{position:relative;height:12px;background:var(--bg);border:1px solid var(--line);border-radius:3px}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--acc);border-radius:2px;transition:width .15s}
+.tick{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink)}
+.tl{position:relative;height:1.1em;font-size:.78rem;color:var(--mute);margin-top:7px}
+.tl span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.facts{margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;color:var(--mute);font-size:.92rem}
+.facts h2{font:700 1.3rem "Barlow Condensed",sans-serif;color:var(--ink);margin:0 0 6px}
+.facts p{margin:0;max-width:60ch}
+@media (prefers-reduced-motion:reduce){.fill{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Machine fault intelligence</h1>
+<p class="lede">Set five sensor readings and see how two trained models judge the machine. Both run in your browser, so nothing is sent anywhere.</p>
+<div class="presets" id="presets" role="group" aria-label="Example readings"></div>
+<div class="grid">
+<div class="sensors" id="sensors"></div>
+<aside class="readout" id="readout" aria-live="polite">
+<p class="state" id="state"></p>
+<p class="why" id="why"></p>
+<div class="meter"><div class="l"><span>Failure score</span><b id="hv"></b></div>
+<div class="bar"><div class="fill" id="hf"></div><div class="tick" style="left:50%"></div></div>
+<div class="tl"><span style="left:50%">alert at 0.50</span></div></div>
+<div class="meter"><div class="l"><span>Unusualness score</span><b id="iv"></b></div>
+<div class="bar"><div class="fill" id="if"></div><div class="tick" id="it"></div></div>
+<div class="tl"><span id="itl"></span></div></div>
+</aside>
+</div>
+<div class="facts">
+<div><h2>What the scores mean</h2><p>The failure score comes from a gradient-boosted tree model trained on 7,500 rows. The unusualness score comes from an Isolation Forest that only saw normal rows. A failure alert wins; otherwise a high unusualness score marks the reading as anomalous.</p></div>
+<div><h2>How well it worked</h2><p>On 2,500 held-out rows the failure model caught 71 of 85 recorded failures (recall 0.84) with precision 0.57 and false alarms on 2.2% of healthy rows. The unusualness check alone found only 1 in 5 failures.</p></div>
+<div><h2>Read with care</h2><p>The training data is synthetic (AI4I 2020), the score is not a calibrated probability, and an alert is a prompt to inspect, not a diagnosis. The curves show the failure score as one sensor changes and the others stay put.</p></div>
+</div>
+</div>
+<script>
+const M=__MODEL__;
+const U=["K","K","rpm","Nm","min"],ST=[.1,.1,1,.1,1],NM=["Air temperature","Process temperature","Rotational speed","Torque","Tool wear"];
+const walk=(t,z)=>{let i=0;while(t.f[i]>=0)i=z[t.f[i]]<=t.t[i]?t.l[i]:t.r[i];return i};
+const std=(x,m)=>x.map((v,k)=>(v-m.mean[k])/m.scale[k]);
+function hgb(x){const m=M.hgb,z=std(x,m);let s=m.base;for(const t of m.trees)s+=t.v[walk(t,z)];return 1/(1+Math.exp(-s))}
+function iso(x){const m=M.iso,z=std(x,m);let tot=0;for(const t of m.trees){let i=0,d=0;while(t.f[i]>=0){i=z[t.f[i]]<=t.t[i]?t.l[i]:t.r[i];d++}tot+=d+t.a[i]}return Math.pow(2,-(tot/m.trees.length)/m.cm)}
+const F=M.features,R=F.map(f=>M.range[f]);
+let x=F.map(f=>M.median[f]);
+const $=id=>document.getElementById(id),fmt=(v,k)=>ST[k]<1?v.toFixed(1):String(Math.round(v));
+const sens=$("sensors"),rows=[];
+F.forEach((f,k)=>{const r=document.createElement("div");r.className="row";
+r.innerHTML=`<div class="top"><label for="n${k}">${NM[k]}</label><div class="num"><input id="n${k}" type="number" step="${ST[k]}" inputmode="decimal"><span>${U[k]}</span></div></div>
+<input id="s${k}" type="range" min="${R[k][0]}" max="${R[k][1]}" step="${ST[k]}" aria-label="${NM[k]} slider">
+<svg class="curve" id="c${k}" viewBox="0 0 200 38" preserveAspectRatio="none" role="img" aria-label="Failure score as ${NM[k]} changes"></svg>
+<div class="hint"><span>${fmt(R[k][0],k)}</span><span>failure score across the range</span><span>${fmt(R[k][1],k)}</span></div><div class="warn" id="w${k}"></div>`;
+sens.appendChild(r);
+$("n"+k).addEventListener("input",e=>{const v=parseFloat(e.target.value);if(!isNaN(v)){x[k]=v;update(k)}});
+$("s"+k).addEventListener("input",e=>{x[k]=parseFloat(e.target.value);update()});});
+M.presets.forEach(p=>{const b=document.createElement("button");b.innerHTML=`${p.name}<small>${p.desc}</small>`;b.onclick=()=>{x=p.v.slice();update()};$("presets").appendChild(b)});
+function curves(){F.forEach((f,k)=>{const n=40,pts=[];for(let i=0;i<=n;i++){const y=x.slice();y[k]=R[k][0]+(R[k][1]-R[k][0])*i/n;pts.push(`${(i/n*200).toFixed(1)},${(36-hgb(y)*34).toFixed(1)}`)}
+const cx=Math.min(1,Math.max(0,(x[k]-R[k][0])/(R[k][1]-R[k][0])))*200;
+$("c"+k).innerHTML=`<line x1="0" x2="200" y1="19" y2="19" stroke="var(--line)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/><polyline points="${pts.join(" ")}" fill="none" stroke="var(--acc)" stroke-width="2" vector-effect="non-scaling-stroke"/><line x1="${cx}" x2="${cx}" y1="0" y2="38" stroke="var(--ink)" stroke-width="2" vector-effect="non-scaling-stroke"/>`})}
+function update(skip){F.forEach((f,k)=>{if(k!==skip){$("n"+k).value=fmt(x[k],k)}$("s"+k).value=x[k];
+$("w"+k).textContent=(x[k]<R[k][0]||x[k]>R[k][1])?`Outside the training range (${fmt(R[k][0],k)} to ${fmt(R[k][1],k)}); treat the result with caution.`:""});
+const h=hgb(x),a=iso(x),cut=M.iso.cut,lo=.4,hi=.8,pos=v=>Math.min(100,Math.max(0,(v-lo)/(hi-lo)*100));
+const s=h>.5?"risk":a>cut?"anom":"ok";
+$("readout").className="readout "+(s==="ok"?"":s);
+$("state").textContent={risk:"Failure risk",anom:"Anomalous condition",ok:"Normal condition"}[s];
+$("why").textContent={risk:"The failure model predicts a failure for these readings. Schedule an inspection.",anom:"No failure is predicted, but these readings look unusual compared with normal operation. This is not a diagnosis.",ok:"Neither model raises an alert. That does not prove the machine is healthy."}[s];
+$("hv").textContent=h.toFixed(2);$("hf").style.width=(h*100)+"%";
+$("iv").textContent=a.toFixed(3);$("if").style.width=pos(a)+"%";$("it").style.left=pos(cut)+"%";
+$("itl").style.left=pos(cut)+"%";$("itl").textContent="alert at "+cut.toFixed(3);
+curves()}
+update();
+</script>
+</body>
+</html>

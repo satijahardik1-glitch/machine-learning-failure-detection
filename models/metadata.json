@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "project": "Machine Fault Intelligence",
+  "feature_order": [
+    "Air temperature [K]",
+    "Process temperature [K]",
+    "Rotational speed [rpm]",
+    "Torque [Nm]",
+    "Tool wear [min]"
+  ],
+  "target": "Machine failure",
+  "random_state": 42,
+  "thresholds": {
+    "hist_gradient_boosting_failure": 0.5,
+    "isolation_forest_contamination": 0.05,
+    "isolation_forest_anomaly_score": 0.571183,
+    "isolation_forest_score_definition": "-score_samples; higher means more unusual"
+  },
+  "training": {
+    "dataset_path": "ai4i+2020+predictive+maintenance+dataset\\ai4i2020.csv",
+    "dataset_sha256": "dc6630cd9b1f0f853922fad78a1b6436570d3f1ec863f1dd5c4340ac56bc8a8e",
+    "clean_observations": 10000,
+    "development_rows": 7500,
+    "holdout_rows_excluded_from_fit": 2500,
+    "if_normal_fit_rows": 5434,
+    "if_calibration_rows_not_used_for_fit": 1875,
+    "fit_scope": "HistGradientBoosting and Random Forest use X_train only; Isolation Forest uses normal rows from its X_train development slice only."
+  },
+  "models": {
+    "hist_gradient_boosting": {
+      "pipeline": [
+        "StandardScaler",
+        "SMOTE(random_state=42)",
+        "HistGradientBoostingClassifier"
+      ],
+      "max_iter": 150,
+      "learning_rate": 0.1,
+      "random_state": 42,
+      "decision_rule": "predict() default class decision (0.5 binary threshold)"
+    },
+    "random_forest": {
+      "pipeline": [
+        "StandardScaler",
+        "SMOTE(random_state=42)",
+        "RandomForestClassifier"
+      ],
+      "n_estimators": 300,
+      "random_state": 42,
+      "n_jobs": -1
+    },
+    "isolation_forest": {
+      "pipeline": [
+        "StandardScaler fit on normal development rows",
+        "IsolationForest"
+      ],
+      "n_estimators": 300,
+      "contamination": 0.05,
+      "random_state": 42,
+      "n_jobs": -1,
+      "fit_scope": "normal development rows only"
+    }
+  },
+  "normal_sensor_reference": {
+    "Air temperature [K]": {
+      "p05": 297.1,
+      "median": 300.1,
+      "p95": 303.5
+    },
+    "Process temperature [K]": {
+      "p05": 307.8,
+      "median": 310.0,
+      "p95": 312.5
+    },
+    "Rotational speed [rpm]": {
+      "p05": 1340.0,
+      "median": 1506.0,
+      "p95": 1851.0
+    },
+    "Torque [Nm]": {
+      "p05": 23.7,
+      "median": 39.9,
+      "p95": 54.9
+    },
+    "Tool wear [min]": {
+      "p05": 10.0,
+      "median": 106.0,
+      "p95": 204.0
+    }
+  },
+  "package_versions": {
+    "numpy": "1.26.4",
+    "pandas": "2.2.2",
+    "scikit-learn": "1.5.0",
+    "imbalanced-learn": "0.12.3",
+    "joblib": "1.4.2",
+    "python": "3.11.9"
+  },
+  "evaluation_file": "evaluation_results.json"
+}
