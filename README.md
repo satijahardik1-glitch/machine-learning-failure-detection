@@ -147,20 +147,3 @@ Inference, batch, and dashboard-startup tests are in the `tests/` directory and 
 ```powershell
 python -m unittest discover -v
 ```
-
-## Live predictor (static web app)
-
-`web/index.html` is a single-file front end that runs the HistGradientBoosting failure model and the Isolation Forest entirely in the browser. It needs no server and sends no data anywhere. Rebuild it after retraining the models:
-
-```powershell
-python scripts/train_artifacts.py
-python scripts/build_web.py
-```
-
-Open `web/index.html` directly, or serve the folder with `python -m http.server -d web 8000`.
-
-## Hosting
-
-**Static predictor on GitHub Pages.** Push the repository to GitHub, open Settings, then Pages, and set the source to GitHub Actions. The workflow in `.github/workflows/pages.yml` publishes the `web` folder on every push to `main`. The site appears at `https://<your-username>.github.io/<repository-name>/`.
-
-**Full Streamlit dashboard on Streamlit Community Cloud.** Push the repository to GitHub, sign in at share.streamlit.io, choose the repository, and set the main file to `app/main.py`. The committed `models/*.joblib` files are used as they are, so no training step is needed on the server. Use Python 3.11 in the advanced settings so the pinned dependencies install cleanly.
